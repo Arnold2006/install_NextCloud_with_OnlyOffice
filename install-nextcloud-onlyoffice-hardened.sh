@@ -76,15 +76,16 @@ MYSQL_EOF
 # Nextcloud download and install
 msg "Downloading Nextcloud"
 cd /tmp
-nextcloud_release_json=$(curl -fsSL https://api.github.com/repos/nextcloud/server/releases/latest)
+# --- Begin patch: pull ZIP from nextcloud-releases/server official repo ---
+NEXTCLOUD_LATEST_JSON=$(curl -fsSL https://api.github.com/repos/nextcloud-releases/server/releases/latest)
 if ! command -v jq >/dev/null 2>&1; then
   apt install -y jq
 fi
-NEXTCLOUD_URL=$(echo "$nextcloud_release_json" | jq -r '.assets[] | select(.name|test("zip$")) | .browser_download_url' | head -1)
+NEXTCLOUD_URL=$(echo "$NEXTCLOUD_LATEST_JSON" | jq -r '.assets[] | select(.name|test("\\.zip$")) | .browser_download_url' | head -1)
 if [[ -z "$NEXTCLOUD_URL" ]]; then
-  echo "Unable to find Nextcloud ZIP URL"; exit 1; fi
-
-NEXTCLOUD_ZIP="nextcloud-latest.zip"
+  echo "Unable to find Nextcloud ZIP URL from nextcloud-releases/server repo"; exit 1
+fi
+NEXTCLOUD_ZIP=$(basename "$NEXTCLOUD_URL")
 wget -O "$NEXTCLOUD_ZIP" "$NEXTCLOUD_URL"
 
 msg "Extracting Nextcloud"
@@ -93,6 +94,7 @@ if [[ -d /var/www/nextcloud ]]; then
   mv "/var/www/nextcloud" "/var/www/nextcloud.$(date +%s).bak"
 fi
 apt install -y unzip
+
 unzip "$NEXTCLOUD_ZIP" -d /var/www/
 mkdir -p /var/www/nextcloud/data
 chown -R www-data:www-data /var/www/nextcloud
