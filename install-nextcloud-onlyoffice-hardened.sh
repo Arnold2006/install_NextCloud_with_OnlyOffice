@@ -113,7 +113,7 @@ mkdir -p /var/www/nextcloud/data
 chown -R www-data:www-data /var/www/nextcloud
 
 msg "Configuring NGINX for Nextcloud"
-/etc/init.d/nginx stop || true # Ensure nginx is not running with old config
+systemctl stop nginx || true # Ensure nginx is not running with old config
 file_exists_warn "/etc/nginx/sites-available/nextcloud.conf"
 cat >/etc/nginx/sites-available/nextcloud.conf <<EOF
 server {
