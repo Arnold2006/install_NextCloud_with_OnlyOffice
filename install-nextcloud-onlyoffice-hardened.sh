@@ -89,13 +89,26 @@ NEXTCLOUD_ZIP=/tmp/$(basename "$NEXTCLOUD_URL")
 wget -O "$NEXTCLOUD_ZIP" "$NEXTCLOUD_URL"
 
 msg "Extracting Nextcloud"
-dir_exists_warn "/var/www/nextcloud"
-if [[ -d /var/www/nextcloud ]]; then
-  mv "/var/www/nextcloud" "/var/www/nextcloud.$(date +%s).bak"
-fi
+
 apt install -y unzip
 
+# Backup old installation if exists
+if [[ -d /var/www/nextcloud ]]; then
+    mv "/var/www/nextcloud" "/var/www/nextcloud.$(date +%s).bak"
+fi
+
 unzip "$NEXTCLOUD_ZIP" -d /var/www/
+
+# Detect correct extracted dir (nextcloud or nextcloud-X.Y.Z)
+EXTRACTED_DIR=$(find /var/www/ -maxdepth 1 -type d -name "nextcloud*" ! -name "nextcloud.*.bak" | head -n 1)
+
+if [[ -z "$EXTRACTED_DIR" ]]; then
+    echo "ERROR: Could not find extracted Nextcloud directory"
+    exit 1
+fi
+
+mv "$EXTRACTED_DIR" /var/www/nextcloud
+
 mkdir -p /var/www/nextcloud/data
 chown -R www-data:www-data /var/www/nextcloud
 
