@@ -151,6 +151,13 @@ apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys CB2DE8E5
 echo "deb https://download.onlyoffice.com/repo/debian squeeze main" | sudo tee /etc/apt/sources.list.d/onlyoffice.list
 apt-get update
 
+cat > /root/.my.cnf <<EOF
+[client]
+user=root
+password=${DB_ROOT_PASSWORD}
+EOF
+chmod 600 /root/.my.cnf
+
 is_installed onlyoffice-documentserver || apt install -y onlyoffice-documentserver
 
 msg "Configuring OnlyOffice JWT"
